@@ -1,1 +1,1 @@
-Worker: go run utils/update_sql_from_api.go
+Worker: make dev
