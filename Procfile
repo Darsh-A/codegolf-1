@@ -1,1 +1,1 @@
-Worker: make dev
+web: npm start
