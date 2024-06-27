@@ -1,0 +1,69 @@
+{{ template "header"   . }}
+{{ template "rankings" . }}
+
+{{ $diamondDeltas := eq .Path "/rankings/misc/diamond-deltas" }}
+{{ $oldestMedal   := hasPrefix .Path "/rankings/misc/oldest-" }}
+{{ $solutions     := eq .Path "/rankings/misc/solutions" }}
+
+{{ $hasHole := or $diamondDeltas $oldestMedal }}
+
+<main id=two-pane>
+    {{ template "nav" . }}
+
+    <table class="nowrap-second{{ if $hasHole }}-third{{ end }} sticky">
+        <thead>
+            <tr>
+                <th>#
+                <th>Golfer
+            {{ if $hasHole }}
+                <th>Hole
+            {{ end }}
+            {{ if $oldestMedal }}
+                <th class=right>Submitted
+            {{ else }}
+                <th class=right>Total
+            {{ end }}
+            {{ if $solutions }}
+                <th class=right>Bytes
+                <th class=right>Chars
+            {{ end }}
+        <tbody>
+        {{ $name := "" }}
+        {{ with .Golfer }}{{ $name = .Name }}{{ end }}
+
+        {{ range .Data.Rows }}
+            <tr {{ if eq $name .Name }} class=me {{ end }}>
+                <td>{{ comma .Rank }}<sup>{{ ord .Rank }}</sup>
+                <td>{{ template "golfer-link" . }}
+            {{ if $hasHole }}
+                <td>
+                    <a href="/rankings/holes/{{ .Hole }}/{{ .Lang }}/{{ .Scoring }}">
+                        <svg><use href="#{{ .Lang }}"/></svg>
+                        <svg><use href="#{{ .Scoring }}"/></svg>
+                        <span>{{ (index $.Holes .Hole).Name }}</span>
+                    </a>
+            {{ end }}
+            {{ if $oldestMedal }}
+                <td class=right>{{ time .Submitted }}
+            {{ else }}
+                <td class=right>{{ comma .Count }}
+            {{ end }}
+            {{ if $solutions }}
+                <td class=right>{{ comma .Bytes }}
+                <td class=right>{{ comma .Chars }}
+            {{ end }}
+        {{ end }}
+    </table>
+
+    {{ template "pagination" .Data.Pager }}
+</main>
+
+<svg>
+    {{ svg "bytes" }}
+    {{ svg "chars" }}
+{{ range .Langs }}
+    {{ svg .ID }}
+{{ end }}
+</svg>
+
+{{ template "footer" }}

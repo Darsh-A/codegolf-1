@@ -1,0 +1,109 @@
+#!/usr/bin/env raku
+
+use TOML::Thumb;
+
+unit sub MAIN(Bool :$no-push, *@langs);
+
+chdir $*PROGRAM.dirname;
+
+my %langs = from-toml 'config/langs.toml'.IO;
+
+if my $unknown = @langs ∖ %langs {
+    note "Unknown langs: $unknown";
+    exit 1;
+}
+
+# Build (and maybe push) lang-base.
+for 'lang-base', 'lang-base-no-proc' {
+    run <docker buildx build>,
+        '--file',   'docker/lang-base.Dockerfile',
+        '--pull',
+      ( '--push' unless $no-push ),
+        '--tag',    "codegolf/$_",
+        '--target', $_,
+        '.';
+}
+
+for %langs{ @langs || * }:p.sort: *.key.fc -> (:key($name), :value(%lang)) {
+    my $id  = id($name);
+    my $img = "codegolf/lang-$id";
+
+    # Tag the builder stage so "docker system prune" won't remove it.
+    run «docker buildx build -t "{$img}-builder" --pull --target builder "langs/$id"»;
+    run «docker buildx build -t $img "langs/$id"»;
+
+    # Size.
+    my $proc = run :out,
+        «docker images --format '{{.Size}}' -f "reference={$img}:latest"»;
+
+    $proc.sink;
+
+    with %lang<size> = $proc.out.slurp(:close).chomp {
+        s/(.)B$/ {$0.uc}iB/;          # "XB" → " XiB"
+        s/^ ( \d  \d ) ' ' /{$0}.0 /; #   99 → 99.0
+        s/^ ( \d\.\d ) ' ' /{$0}0 /;  #  9.9 → 9.90
+    }
+
+    # Version.
+    if $id ~~ any <assembly brainfuck fish golfscript hexagony k> {
+        "langs/$id/Dockerfile".IO.slurp ~~ / ' VERSION=' (\S+) /;
+        %lang<version> = $id eq 'assembly' ?? "DefAssembler $0" !! $0;
+    }
+    else {
+        # Forth outputs it's version number over stderr.
+        my $proc = run «docker run -i --rm --tmpfs '/tmp:exec' $img»,
+            :in, :out, :merge($id eq 'forth');
+
+        $proc.in.say: 'puts [info patchlevel]' if $id eq 'tcl';
+        $proc.in.close;
+
+        my $ver = $proc.out.slurp(:close).chomp.trans: "\n" => ' ';
+
+        given $name {
+            my $digits = $ver ~~ / <[\d.]>+ \d+ /;
+
+            when 'BASIC'      { $ver = "FreeBASIC $digits" }
+            when 'C#'
+               | 'F#'
+               | 'PowerShell' { }
+            when 'C'          { $ver = "Tiny C Compiler $digits" }
+            when 'Clojure'    { $ver = "Babashka $digits" }
+            when 'COBOL'      { $ver = "GnuCOBOL $digits" }
+            when 'D'          {
+                $ver ~~ m/ v (\S+) /;
+                $ver = "D $0 on LDC $digits";
+            }
+            when 'Forth'
+               | 'Fortran'    { $ver = "GNU $name $digits" }
+            when 'Haskell'    { $ver = "Glasgow Haskell Compiler $digits" }
+            when 'JavaScript' { $ver = "V8 $digits" }
+            when 'Lisp'       { $ver = "GNU CLISP $digits" }
+            when 'Prolog'     { $ver = "SWI-Prolog $digits" }
+            when 'Raku'       {
+                $ver ~~ m:g/ v (\S+) '.' /;
+                $ver = "Raku $1[0] on Rakudo $0[0]";
+            }
+            default { $ver = $digits }
+        }
+
+        %lang<version> = $ver;
+    }
+
+    run «docker push $img» unless $no-push;
+}
+
+spurt 'config/langs.toml', to-toml %langs;
+
+# Reorder Dockerfiles: largest first to speed-up partial deploys.
+my $layers;
+my $max = %langs.keys».&id».chars.max;
+
+$layers ~= sprintf(
+    qq[COPY --from=codegolf/lang-%s%s ["/", "/langs/%1\$s/rootfs/"%2\$s] # %8s\n],
+    id(.key), ' ' x $max - id(.key).chars, .value<size>,
+) for %langs.sort: { so .value<size> ~~ /K/, -.value<size>.split(" ")[0], id(.key) };
+
+.spurt: .slurp.subst: / ( 'COPY --from=codegolf' \N+ \n )+ /, $layers
+    for <docker/dev.Dockerfile docker/live.Dockerfile>».IO;
+
+sub id { $^name.lc.subst(' ', '-').trans: qw[# + ><>] => qw[-sharp p fish] }

@@ -1,0 +1,33 @@
+/* TODO Stop having "thin" pages, make everything consistent. */
+body { max-width: 60rem }
+
+body > p { margin: 1rem 1rem 0 }
+
+h1 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1rem 1rem 0;
+    white-space: nowrap;
+}
+
+h1 nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+h1 span { flex: 1 }
+
+table { flex: 1 }
+
+#pagination { display: flex }
+
+#pagination > :first-child { text-align: right }
+
+#pagination > :not(:nth-child(2)) { flex: 1 }
+
+#pagination > :nth-child(2) {
+    font-variant: tabular-nums;
+    margin: 0 .5rem;
+}

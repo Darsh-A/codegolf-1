@@ -1,0 +1,23 @@
+[linters]
+disable-all = true
+enable = [
+    'bodyclose',
+    'goimports',
+    'gosimple',
+    'govet',
+    'ineffassign',
+    'revive',
+    'rowserrcheck',
+    'staticcheck',
+    'typecheck',
+    'unconvert',
+    'unparam',
+    'unused',
+]
+
+[linters-settings]
+revive.rules = [
+    { name = 'increment-decrement' },
+    { name = 'unnecessary-stmt' },
+    { name = 'var-naming' },
+]

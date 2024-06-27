@@ -1,0 +1,8 @@
+{
+    "name": "Code Golf",
+    "depends": [
+        "HTTP::Tiny",
+        "IO::Socket::SSL",
+        "TOML::Thumb"
+    ]
+}

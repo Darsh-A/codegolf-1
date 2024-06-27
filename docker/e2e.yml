@@ -1,0 +1,41 @@
+services:
+  app:
+    command:
+      - go
+      - run
+      - .
+    depends_on:
+      - db
+    environment:
+      E2E: 1
+    healthcheck:
+      test:     curl -fks https://app/healthz
+      interval: 1s
+      retries:  60
+  db:
+    tmpfs: /var/lib/postgresql/data
+  e2e:
+    build:
+      context: .
+      dockerfile: e2e.Dockerfile
+    depends_on:
+      app:
+        condition: service_healthy
+      firefox:
+        condition: service_started
+    entrypoint:
+      - prove6
+      - -It
+    environment:
+      PGDATABASE: code-golf
+      PGHOST:     db
+      PGSSLMODE:  disable
+      PGUSER:     postgres
+    tty: true
+    volumes:
+      - ..:/code-golf
+    working_dir: /code-golf
+  firefox:
+    build:
+      context: .
+      dockerfile: firefox.Dockerfile

@@ -1,0 +1,6 @@
+@import "./_rankings.css";
+
+td:nth-child(4) {
+    color: var(--grey);
+    font-size: .75rem;
+}

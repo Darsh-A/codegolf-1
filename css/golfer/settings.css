@@ -1,0 +1,50 @@
+@import "./_golfer.css";
+
+h2 { font-size: 1.25rem }
+
+main > form {
+    display: grid;
+    gap: 1rem;
+    max-width: 30rem;
+}
+
+main > form + form {
+    border-top: 1px solid var(--grey);
+    padding-top: 1rem;
+}
+
+#connections {
+    display: grid;
+    gap: 1rem;
+    padding: 0;
+}
+
+#connections div { grid-row: span 2 }
+
+#connections h3 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#connections h3 span { font-weight: normal }
+
+#connections li {
+    column-gap: .5rem;
+    display: grid;
+    grid-template-columns: min-content 1fr min-content;
+}
+
+#connections li > svg {
+    background: var(--color);
+    border-radius: .75rem;
+    color: var(--background);
+    grid-row: span 2;
+    height: 3rem;
+    width: 3rem;
+}
+
+#missingConnections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}

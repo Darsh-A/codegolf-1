@@ -1,0 +1,71 @@
+blockquote {
+    margin: 1rem;
+    white-space: normal;
+}
+
+caption, td { text-align:right }
+
+dd { margin: 1rem }
+
+dt { font-weight: bold }
+
+main p:not(:first-child) { margin-top: 1rem }
+
+table {
+    caption-side: bottom;
+    margin-top: 1rem;
+    max-width: 100%;
+    width: 22rem;
+}
+
+th:first-child { width: 100% }
+
+#langs {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+#langs section a {
+    overflow: hidden;
+    padding: 0 .5rem .25rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#langs div { padding: .25rem .5rem 0 }
+
+#langs h2 {
+    flex: 1;
+    font-size: 1.25rem;
+}
+
+#langs header {
+    align-items: center;
+    color: var(--background);
+    display: flex;
+    font-variant: tabular-nums;
+    gap: .5rem;
+    padding: .25rem .5rem;
+}
+
+#langs p {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+#langs section {
+    background: var(--color);
+    border: 1px solid var(--color);
+    border-radius: .5rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#langs section > :not(:first-child) { background: var(--light-grey) }
+
+#langs svg {
+    max-height: 1.25rem;
+    width: 1.25rem;
+}

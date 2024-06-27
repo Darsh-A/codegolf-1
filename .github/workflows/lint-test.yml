@@ -1,0 +1,25 @@
+name: Lint & Test
+on:
+  pull_request:
+  push:
+    branches: [master]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: latest
+
+      - run: npm install
+      - run: make lint
+      - run: make test
+      - run: go install filippo.io/mkcert@latest
+      - run: make cert
+      - run: make e2e
